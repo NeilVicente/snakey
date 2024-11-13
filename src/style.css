@@ -71,6 +71,9 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
+  // make it responsive on mobile
+  flex-direction: column;
+  width: 100%;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -81,9 +84,8 @@ h1 {
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  max-width: 100%;
+  margin:0 auto;
   text-align: center;
 }
 
