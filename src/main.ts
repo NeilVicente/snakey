@@ -8,7 +8,8 @@ const highScore = document.getElementById("highScore") as HTMLDivElement;
 const startButton = document.getElementById("startButton") as HTMLButtonElement;
 const overlay = document.getElementById("overlay") as HTMLDivElement;
 const gameOverText = document.getElementById("gameOverText") as HTMLDivElement;
-const snakeLength = 3;
+const snakeLength = 5;
+const gameId = 1;
 
 let counter = 0;
 let gameLevel = 4;
@@ -28,9 +29,7 @@ class Game {
   food!: Food;
 
   constructor() {
-    if (localStorage.getItem("highScore")) {
-      this.highScore = Number(localStorage.getItem("highScore"));
-    }
+    this.getHighScore();
   }
 
   start = () => {
@@ -50,7 +49,21 @@ class Game {
     highScore.innerText = `${this.highScore}`;
     gameOverText.innerText = `Game Over! Your score is ${this.score}`;
     gameOverText.style.visibility = "visible";
+    if (this.score > this.highScore) {
+      fetch(`http://localhost:3000/games/${gameId}/highscores`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          score: this.score,
+          player_name: "Player",
+        }),
+      }).then(() => {
+        this.highScore = this.score;
+      });
 
+    }
   };
 
   displayScore = () => {
@@ -59,11 +72,6 @@ class Game {
 
   increaseScore = () => {
     this.score += 1;
-
-    if (this.score > this.highScore) {
-      this.highScore = this.score;
-      localStorage.setItem("highScore", this.highScore.toString());
-    }
     this.displayScore();
   };
 
@@ -72,6 +80,16 @@ class Game {
     return pathsToCheck.some((path) => {
       return path[0] == coordinates[0] && path[1] === coordinates[1];
     });
+  };
+
+  getHighScore = () => {
+    fetch(`http://localhost:3000/games/${gameId}/highscores`)
+    .then((response) => response.json())
+    .then((data) => {
+      this.highScore = data[0]?.score || 0;
+    }).then(() => {
+      highScore.innerText = `${this.highScore}`;
+    })
   };
 }
 class Snake {
@@ -188,6 +206,8 @@ class Food {
   y: number = Math.floor(Math.random() * 40) * blockSize;
 
   draw() {
+    ctx!.strokeStyle = "dark red";
+    ctx!.strokeRect(this.x, this.y, blockSize, blockSize);
     ctx!.fillStyle = "red";
     ctx!.fillRect(this.x, this.y, blockSize, blockSize);
   }
@@ -207,7 +227,7 @@ function gameLoop() {
     return;
   }
 
-  if (counter < 300 / gameLevel) {
+  if (counter < 400 / gameLevel) {
     counter += 10;
     return requestAnimationFrame(gameLoop);
   }
